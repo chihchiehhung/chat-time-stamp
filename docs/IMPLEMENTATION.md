@@ -14,7 +14,8 @@
 
 ```
 manifest.json
-content.js      # 攔截送出 + 注入時間
+content/core.js        # 站台無關的攔截送出 + 注入時間
+content/sites/claude.js  # claude.ai 的 selector（adapter）
 popup.html      # 開關 UI
 popup.js        # 讀寫開關狀態
 ```
@@ -23,7 +24,7 @@ popup.js        # 讀寫開關狀態
 
 - `manifest_version: 3`
 - `permissions: ["storage"]`
-- `content_scripts`: matches `https://claude.ai/*`，`js: ["content.js"]`，`run_at: "document_idle"`
+- `content_scripts`: matches `https://claude.ai/*`，`js: ["content/sites/claude.js", "content/core.js"]`（adapter 先載入，core 再讀取），`run_at: "document_idle"`
 - `action.default_popup: "popup.html"`
 
 ## 狀態儲存
@@ -31,7 +32,7 @@ popup.js        # 讀寫開關狀態
 `chrome.storage.sync`，單一 key：`enabled`（boolean，預設 `true`）。
 
 - popup.js：開啟時讀取並設定 checkbox，變更時寫入。
-- content.js：啟動時讀取，並監聽 `chrome.storage.onChanged` 即時更新記憶體中的 `enabled`，不需重新整理頁面。
+- content/core.js：啟動時讀取，並監聽 `chrome.storage.onChanged` 即時更新記憶體中的 `enabled`，不需重新整理頁面。
 
 ## 時間字串格式
 
@@ -45,7 +46,7 @@ popup.js        # 讀寫開關狀態
 - 附加方式：在輸入框尾端先 `insertParagraph` 換段，再 `insertText` 插入字串（不直接塞 `\n\n`，ProseMirror 對文字中的換行處理不可靠）。
 - 程式風格遵循 Google JS / HTML / CSS style guide；content script 無法用 ES module，故以 IIFE 包住。
 
-## 核心流程（content.js）
+## 核心流程（content/core.js）
 
 ### 1. 找元素
 - 輸入框：`div[contenteditable="true"].ProseMirror`（claude.ai 使用 ProseMirror）。
@@ -109,7 +110,7 @@ ProseMirror 對 DOM 變更的同步是非同步的。若在原本的 keydown 流
 
 ## 實作順序
 
-1. 建 manifest + 空的 content.js，載入 extension，確認在 claude.ai 有執行。
+1. 建 manifest + 空的 content script，載入 extension，確認在 claude.ai 有執行。
 2. DevTools 確認輸入框與送出按鈕 selector。
 3. 先做「手動測試」：在 console 呼叫 `insertAtEnd` 看 ProseMirror 是否接受。
 4. 接上 Enter / 點擊攔截與重送。

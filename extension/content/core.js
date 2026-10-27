@@ -1,16 +1,27 @@
 /**
- * @fileoverview Appends the user's local time to the message typed into
- * claude.ai before it is sent.
+ * @fileoverview Site-independent logic that appends the user's local time to
+ * the message typed into a chat page before it is sent.
  *
- * Content scripts cannot use static ES module imports, so everything lives
- * in one IIFE to keep the page's global scope clean.
+ * Each supported site provides an adapter (see content/sites/) that sets
+ * globalThis.chatTimeStampAdapter before this file runs. The manifest loads
+ * the adapter first. Content scripts cannot use static ES module imports,
+ * so shared state goes through this global and everything here lives in one
+ * IIFE to keep the page's global scope clean.
  */
 
 (() => {
-  // Selectors are kept together because claude.ai may change its DOM.
-  const EDITOR_SELECTOR = 'div.ProseMirror[contenteditable="true"]';
-  // data-testid is used because aria-label changes with the UI language.
-  const SEND_BUTTON_SELECTOR = 'button[data-testid="chat-input-send"]';
+  /**
+   * @typedef {{editorSelector: string, sendButtonSelector: string}}
+   *     SiteAdapter
+   */
+
+  /** @type {!SiteAdapter|undefined} */
+  const adapter = globalThis.chatTimeStampAdapter;
+  if (!adapter) {
+    console.warn('[Chat Time Stamp] No site adapter loaded.');
+    return;
+  }
+  const {editorSelector, sendButtonSelector} = adapter;
 
   const STAMP_PREFIX = '[Current local time:';
 
@@ -93,7 +104,7 @@
     if (!text || text.includes(STAMP_PREFIX)) {
       return;
     }
-    const sendButton = document.querySelector(SEND_BUTTON_SELECTOR);
+    const sendButton = document.querySelector(sendButtonSelector);
     if (!sendButton) {
       console.warn('[Chat Time Stamp] Send button not found.');
       return;
@@ -105,7 +116,7 @@
 
     requestAnimationFrame(() => {
       // The button may have been re-rendered; look it up again.
-      const button = document.querySelector(SEND_BUTTON_SELECTOR) || sendButton;
+      const button = document.querySelector(sendButtonSelector) || sendButton;
       isInternalSend = true;
       button.click();
       isInternalSend = false;
@@ -121,7 +132,7 @@
     if (event.isComposing) {
       return;
     }
-    const editor = event.target.closest?.(EDITOR_SELECTOR);
+    const editor = event.target.closest?.(editorSelector);
     if (editor) {
       stampAndResend(event, editor);
     }
@@ -129,10 +140,10 @@
 
   /** @param {!MouseEvent} event */
   function onClick(event) {
-    if (!event.target.closest?.(SEND_BUTTON_SELECTOR)) {
+    if (!event.target.closest?.(sendButtonSelector)) {
       return;
     }
-    const editor = document.querySelector(EDITOR_SELECTOR);
+    const editor = document.querySelector(editorSelector);
     if (editor) {
       stampAndResend(event, editor);
     }
