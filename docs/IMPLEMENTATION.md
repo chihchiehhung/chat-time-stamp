@@ -7,7 +7,7 @@
 
 ## 範圍
 
-- In scope：claude.ai 網頁版、Chrome、Manifest V3、popup on/off 開關。
+- In scope：claude.ai 與 gemini.google.com 網頁版、Chrome、Manifest V3、popup on/off 開關。
 - Out of scope（v1）：手機 / 桌面 app、「只在第一則加」模式、自訂格式、其他 AI 網站。
 
 ## 檔案結構
@@ -128,3 +128,28 @@ ProseMirror 對 DOM 變更的同步是非同步的。若在原本的 keydown 流
 - [ ] 開關 OFF：不加時間；切 ON 後不需重新整理即生效
 - [ ] 連續送多則：每則各一個時間、不重複
 - [ ] 新對話頁與既有對話頁皆可用
+
+## 多站架構與各站 adapter
+
+核心邏輯在 `content/core.js`，與網站無關。每個網站只需要一個 adapter 檔，在載入 core 之前設定
+`globalThis.chatTimeStampAdapter = {editorSelector, sendButtonSelector}`。兩個 content script 共用同一個
+isolated world，所以全域變數可以互通，但不會洩漏到網頁本身。`manifest.json` 為每個網站各列一筆
+`content_scripts`，`js` 陣列順序必須是 adapter 在前、core 在後。
+
+| 網站 | 編輯器 | 輸入框 selector | 送出按鈕 selector |
+|---|---|---|---|
+| claude.ai | ProseMirror (tiptap) | `div.ProseMirror[contenteditable="true"]` | `button[data-testid="chat-input-send"]` |
+| gemini.google.com | Quill | `rich-textarea div.ql-editor[contenteditable="true"]` | `[data-test-id="send-button-container"] gem-icon-button.send-button button` |
+
+注意事項：
+
+- 兩個網站的 `aria-label` 都隨介面語言變動，selector 一律用 `data-testid` / `data-test-id` / 元素名稱。
+- Gemini 的 `rich-textarea` 內另有 `div.ql-clipboard`，也是 `contenteditable`，selector 必須明確指定 `.ql-editor`。
+- Gemini 的送出按鈕在輸入框為空時不會渲染，只有真正輸入文字後才出現，取得 DOM 時要用鍵盤實際輸入，
+  不能在 DevTools 直接改文字。
+- 網站改版造成 selector 失效時，只需修改對應的 adapter 檔。
+
+## 發佈
+
+`scripts/build.sh` 讀取 `manifest.json` 的版本，將 `extension/` 打包成 `dist/chat-time-stamp-v<version>.zip`。
+每次上架更新都必須遞增 `manifest.json` 的 `version`。圖示由 `scripts/make-icons.py` 產生。
