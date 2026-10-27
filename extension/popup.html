@@ -6,11 +6,22 @@
     <link rel="stylesheet" href="popup.css">
   </head>
   <body>
-    <label class="toggle">
-      <input type="checkbox" id="enabled-toggle">
-      <span class="toggle-label">Append local time on send</span>
-    </label>
-    <p class="status" id="status-text"></p>
+    <main class="popup">
+      <header class="header">
+        <h1 class="title">Chat Time Stamp</h1>
+        <label class="switch">
+          <input type="checkbox" class="switch-input" id="enabled-toggle"
+              aria-label="Append local time on send">
+          <span class="switch-track"></span>
+        </label>
+      </header>
+      <p class="description">
+        Adds your local time to the end of every message you send, so the AI
+        knows what time it is.
+      </p>
+      <p class="status" id="status-text"></p>
+      <p class="sites">claude.ai &middot; gemini.google.com</p>
+    </main>
     <script src="popup.js"></script>
   </body>
 </html>

@@ -8,7 +8,10 @@ const statusText = document.getElementById('status-text');
 /** @param {boolean} isEnabled */
 function render(isEnabled) {
   toggle.checked = isEnabled;
-  statusText.textContent = isEnabled ? 'ON' : 'OFF';
+  statusText.textContent = isEnabled ?
+      'On: time is added when you send' :
+      'Off: messages are sent as typed';
+  statusText.classList.toggle('status-on', isEnabled);
 }
 
 chrome.storage.sync.get({enabled: true}).then((items) => {
