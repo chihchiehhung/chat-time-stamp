@@ -95,7 +95,7 @@
     }
     const sendButton = document.querySelector(SEND_BUTTON_SELECTOR);
     if (!sendButton) {
-      console.warn('[Claude Time Stamp] Send button not found.');
+      console.warn('[Chat Time Stamp] Send button not found.');
       return;
     }
 

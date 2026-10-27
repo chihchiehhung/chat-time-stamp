@@ -1,4 +1,4 @@
-# Claude Time Stamp — Implementation Doc
+# Chat Time Stamp — Implementation Doc
 
 ## 目標
 
