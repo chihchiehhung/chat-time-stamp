@@ -5,6 +5,9 @@
   --accent: #2f6fed;
   --track-off: #c4c9d0;
   --divider: #e6e8eb;
+  --claude: #c9582f;
+  --gemini-from: #1a73e8;
+  --gemini-to: #8e4fd8;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -15,6 +18,9 @@
     --accent: #6c9bff;
     --track-off: #4a4e54;
     --divider: #34373b;
+    --claude: #e8845f;
+    --gemini-from: #6fa8ff;
+    --gemini-to: #b98cf0;
   }
 }
 
@@ -63,6 +69,21 @@ body {
   border-top: 1px solid var(--divider);
   color: var(--muted);
   font-size: 12px;
+}
+
+.site-name {
+  font-weight: 600;
+}
+
+.site-claude {
+  color: var(--claude);
+}
+
+.site-gemini {
+  background: linear-gradient(90deg, var(--gemini-from), var(--gemini-to));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .switch {
